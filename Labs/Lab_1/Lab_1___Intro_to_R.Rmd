@@ -1,5 +1,5 @@
 ---
-title: "LAB 1: INTRO TO R"
+title: "[LAB 1: INTRO TO R](http://htmlpreview.github.io/?http://raw.githubusercontent.com/justingrimmer/MathCamp/master/Labs/Lab_1/Lab_1___Intro_to_R.html)"
 subtitle: "University of Chicago Computational Math Camp, 2017"
 author: "Joshua Mausolf and Ryan Hughes, TAs"
 output:
@@ -13,7 +13,7 @@ output:
 
 ### Rmarkdown and Rscripts
 
-This is an RMarkdown file (.Rmd file), which contains both Markdown and R code, found in code-blocks. It is similar to R Scripts and is used to run R code, but also compiles a finished document, such as a webpage (.html) or PDF (.pdf) or even Word. It can also be directly integrated with LaTeX.
+This is an [RMarkdown](https://www.rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf) file (.Rmd file), which contains both Markdown and R code, found in code-blocks. It is similar to R Scripts and is used to run R code, but also compiles a finished document, such as a webpage (.html) or PDF (.pdf) or even Word. It can also be directly integrated with LaTeX.
 
 Conversely, R scripts have a .R or .Rd file extension (depending on your version of R) and are text documents that store commands. For both R scripts and RMarkdown, keeping clean and annotated script files is important for many reasons, including avoiding errors and replicating work.
 
