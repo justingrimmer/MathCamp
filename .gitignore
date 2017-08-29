@@ -1,0 +1,8 @@
+*.DS_Store
+*.tex
+*.aux
+*.gz
+*.log
+*.out
+
+*_Answers/
