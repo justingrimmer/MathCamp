@@ -1,0 +1,766 @@
+---
+title: "[R Lab 2: Functions, Optimization, and Simulation Part 1](http://htmlpreview.github.io/?http://raw.githubusercontent.com/justingrimmer/MathCamp/master/Labs/Lab_2/Lab_2___Functions1.html)"
+subtitle: "University of Chicago Computational Math Camp, 2017"
+author: 
+- "TAs: Joshua Mausolf and Ryan Hughes"
+- "(with material from previous TAs: Hans Lueders, Jonathan Mummolo, and Erik Peterson)"
+date: "Thursday, August 31, 2017"
+output: 
+  html_document: 
+    toc: true
+    toc_float: true
+theme: sandstone
+---
+
+# 1. Functions in R
+
+### Introduction
+
+Simply put, functions take an input and produce an output. There are many examples in R. Some help with reading in data (e.g., read.csv()), others help with manipulating data (e.g., subset()), or estimating statsitical models (e.g., lm())
+
+Some functions are part of base R (the set of functions that come with R when you install the program) and can be called immediately on starting it up. However others must be installed and called as part of a package. 
+
+Once you've found a package and loaded the function someone else wrote (or have identified a function in base R that you want to learn more about), you can examine the contents of a package or function for content by placing the function's name after a question mark or the package name after two question marks:
+
+```{r}
+?read.csv
+?subset
+?lm
+```
+
+However, there will also be instances in which a canned function does not exist for what you want to do. You may have some repetitive task you need to perform over and over throughout a data analysis. Rather than clutter up your code by copy and pasting a single operation multiple times, you can write a function that does the task and use it throughout your code. Another advantage is that this also reduces the chances for user error in copying several lines of code.
+
+So let's write a function in the truest sense. One that takes a numeric vector as an input, performs an operation and outputs a numeric vector with the results.
+
+Throughout this session (and the quarter) we're going to talk a lot about quadratic functions like the following: $y = -(x-1)^2 + 8$.
+
+Although basic, these sorts of functions are used to underpin sophisticated analyses of voting behavior, among many other things. Quadratic loss functions are also central to Ordinary Least Squares Regression which you will learn more about in 450A. 
+
+
+### Writing a Function in R
+
+To write a function in R, you first need to specify the inputs. Depending on your task, these might be data frames or a single number or a string of text. In this case, our function will take a numeric vector we call "input.values". Of course, functions can also take various inputs (even of different classes). But we will keep it simple for now.
+
+Once inside the braces you specify the operation the function should perform on these inputs. We want to produce a numeric vector that performs a set operation on each numeric item it receives.
+
+Finally, using return() you need to specify what the function will put back into the broader R environment.
+
+```{r}
+quadratic.function <- function(input.values){
+	y.values <- -(input.values-1)^2 + 8
+	return(y.values)
+}
+```
+
+Let's try our function out with the sequence of numbers below:
+
+```{r}
+domain.1 <- seq(from=-2, to=2, by=0.1)
+domain.1 
+```
+
+To call the function, you write its name and then place the inputs inside parentheses:
+
+```{r}
+quadratic.function(domain.1)
+```
+
+If you don't provide an object to receive the output, it will display on the screen like above. However, you can also pass the function output to an object like this:
+
+```{r}
+quadratic.outputs <- quadratic.function(domain.1)
+quadratic.outputs
+```
+
+What a great function! Let's take a few moments and figure out some ways to break it or make the function hard to use: 
+
+* not numeric inputs
+```{r, error=T}
+false.input1 <- c("Hello", "World")
+quadratic.function(false.input1)
+```
+
+* both numeric and non-numeric inputs
+```{r, error=T}
+false.input2 <- c(c(1,2,3), c("Hello", "World"))
+quadratic.function(false.input2)
+```
+
+* input containing missing values---this works! But it depicts "NA" for the missing element. 
+
+```{r, error=T}
+false.input3 <- c(1,2,NA,4,5)
+quadratic.function(false.input3)
+```
+
+
+### If-else and conditional statements in R
+
+OK, time for a sequel that dramatically improves on the first version. Let's write an updated function that more politely informs the user of one reason it may not work. Specifically, we want the function to tell us if the input is not numeric (a string, for example)
+
+```{r, error=T}
+## Coding new function
+quadratic.function2 <- function(input.values){
+	if(is.numeric(input.values)){
+	  y.values <- -(input.values-1)^2 + 8
+	  return(y.values)
+	}
+	else{
+	  return("Error: Only Input Numeric Objects Please!")
+	}
+}
+
+## Applying new function
+quadratic.function("a")
+quadratic.function2("a")
+```
+
+You'll note that the work this updated function does is based on an "if-else" statement. These are conditional statements which are incredibly useful in writing functions and constructing variables. The basic structure is as follows. **First** you specify some sort of logic condition that may or may not be met. In the above case, the condition is whether our function receieved a numeric vector from the outside environment. 
+
+```{r}
+is.numeric(2)
+is.numeric("2")
+```
+
+In the above examples you can see that "is.numeric()" produces a "TRUE" value if passed a numeric vector and a "FALSE" if this is not the case. To make an if-else statement work you'll need to specificy a condition that produces logic statements like this. 
+
+**Second**, if the statement is evaluated as true, then the operation in the braces immediately following the statement is performed. However, if the statement evaluates as false, then the action taken comes from the "else" portion of the statement. In the above example this means we get an error message when passing a non-numeric vector to the function. 
+
+R has a variety of logic statements that can be used in if-else statements or any other setting where you need to employ a TRUE/FALSE logic, here are a few of the most useful:
+
+* "==" tests the equality of two objects
+```{r}
+2==2
+2=="A"
+```
+
+* "!=" test whether two objects are NOT equal
+```{r}
+2 != 2 
+2 != "A"
+```
+
+* ">", "<", "<=", ">=" test greater than / less than for two objects
+```{r}
+3 > 2
+4 >= 4
+4 <= 4
+```
+
+* Sometimes logic statements might have multiple parts, "&" lets you chain together multiple conditions that must be simultaneously satisfied to be evaluated as true
+
+```{r}
+number <- 5
+number !=3 & number > 1
+
+number <- 1
+number !=3 & number > 1
+```
+
+* You can also use "|" to specify an "or" condition. This means the overall statement evaluates as "TRUE" if any single component of the logic chain is satisfied
+
+```{r}
+number <- 10
+
+number == "A"
+number > 8
+number == "A" | number > 8
+```
+
+A very useful command is the "ifelse()" function. Depending on whether an element of its input vector is TRUE or FALSE as defined by a condition included in the function, it returns either of two values. For example, say we have a vector of the first ten natural numbers. We want to create a corresponding vector of a dichotomous variable that is "0" for odd and "1" for even numbers:
+
+```{r}
+## generate vector of natural numbers
+nat.numbers <- seq(1,10,1)
+
+## first element of ifelse command: TRUE/FALSE condition; second element: value if condition is TRUE; third element: value if condition is FALSE.
+odd.even <- ifelse(nat.numbers %% 2 == 1, 0, 1)
+rbind(nat.numbers, odd.even)
+```
+
+"Ifelse()" can also return non-numerical values:
+```{r}
+odd.even2 <- ifelse(nat.numbers %% 2 == 1, "odd", "even")
+rbind(nat.numbers, odd.even2)
+```
+
+We can also include ifelse-statements in ifelse-statements. For example, say we want to first code whether an element from the nat.numbers vector can be divided by 3. If that is not the case, we want to classify each element as odd or even:
+```{r}
+odd.even3 <- ifelse(nat.numbers %% 3==0, "Yes",
+                    ifelse(nat.numbers%% 2 == 1, "odd", "even"))
+rbind(nat.numbers, odd.even3)
+```
+
+### Exercises
+
+#### Fixing code
+
+The following function doesn't produce any output. What went wrong?
+```{r, error=T}
+broken.function <- function(number){
+					if(inputs==5){
+						return("FIVE")
+					}
+					}
+					
+broken.function(8)
+```
+
+```{r, include=F}
+## Corrected function
+broken.function <- function(inputs){
+					if(inputs==5){
+						return("FIVE")
+					}
+					else{
+						return("NOT FIVE")
+					}
+					}
+					
+broken.function(8)
+```
+
+What went wrong here?
+
+```{r, error=T}
+inputs <- seq(1,30,1)
+
+# broken.function2 <- function(inputs){
+#  inputs.new <- ifelse(inputs %% 2=0, 1)
+#  return(inputs.new)
+#}
+
+broken.function2(inputs)
+```
+
+```{r, include=F}
+## corrected function
+broken.function2 <- function(inputs){
+  inputs.new <- ifelse(inputs %% 2==0, 1, 0)
+    return(inputs.new)
+}
+
+broken.function2(inputs)
+```
+
+					
+#### Creating your own function
+
+Create a function that takes a vector as input. If the sum of all elements of this vector is less than or equal to 100, it returns the sum of all elements that can be divided by five without remainder. If the sum of all elements exceeds 100, it returns the mean of all elements. Apply your function to two vectors: (1) the first ten natural numbers; (2) the first 100 natural numbers.
+
+```{r, include=F}
+your.function <- function(inputs){
+  if(sum(inputs, na.rm=T)<=100){
+    sub <- subset(inputs, inputs %% 5 == 0)
+    sum.sub <- sum(sub)
+    return(sum.sub)
+  }
+  else{
+    mean.all <- mean(inputs, na.rm=T)
+    return(mean.all)
+  }
+}
+
+inputs1 <- seq(1,10,1)
+inputs2 <- seq(1,100,1)
+
+your.function(inputs1)
+your.function(inputs2)
+```
+
+
+# 2. An Introduction to Optimization in R
+
+### Spatial Models of Politics
+
+Now let's talk about optimization in R. But first, a brief aside about spatial models of politics. Building off of work in economics by Hotelling (1929), Black (1948) (and later Downs (1957)) formalized a spatial model of politics. In simple spatial models, politics is conceived as a single dimension running from left (extremely liberal) to right (extremely conservative). Policy proposals, legislators and voters all occupy places on this political dimension. The action of politics is structured by where these actors are placed. Each actor's utility from a policy proposal depends on the distance between her ideal point and the position of the proposal in the political space.
+
+Let's assume our humble quadratic function from before actually represents the utility of a single legislator considering a variety of policy alternatives
+
+Here's a plot of what this function looks like. To make the plot we pass R the x and y values we just generated. There are additional parameters in plot that help with labeling the graph and determining what exactly is plotted. We won't have time to go through these in great detail today, but there are plenty of plots in this lab that should help you figure out what the different parameters do: 
+
+```{r}
+x.values <- seq(from=-2, to=4, by=.1)
+y.values <- quadratic.function(seq(from=-2, to=4, by=.1))
+
+plot(x=x.values, y=y.values, type='l', xlab="Policy Ideology", 
+     ylab="Legislator's Utility From Policy", xlim=c(-4,4), 
+     ylim=c(-.5,10), main="Legislator's Utility Function")
+```
+
+### Optimization by hand
+
+What policy will make our legislator happiest? We can find out by optimizing this function. Let's do this by taking the derivative. What's the derivative of $y=-(x-1)^2 + 8$?
+
+$\rightarrow \frac{\partial y}{\partial x} = -2x + 2$
+
+Let's plot the original function and its derivative together 
+
+```{r}
+# Derivative of Utility Function
+derivative.y.values <- -2*x.values+2
+
+# To stack two individual plots on top of each other, we can use mfrow in the graphical parameters command par():
+par(mfrow=c(1,2))
+plot(x=x.values,y=y.values, type='l', xlab="Policy Ideology", 
+     ylab="Legislator Utility From Policy", xlim=c(-4,4), ylim=c(-.5,10), 
+     main="Legislator's Utility Function")
+plot(x=x.values,y=derivative.y.values, type='l', 
+     main="Derivative of \n Legislator's Utility Function", 
+     xlab="Policy Ideology", ylab="Derivative", xlim=c(-4,4))
+dev.off()
+```
+
+(Note that "dev.off()" closes out plotting, you'll want to do this before you start more plots if you are altering things inside the "par" parameter command when you plot.)
+
+The Legislator's utility will be maximized at the peak of the utility function or, alternatively, where the derivative of the utility function is equal to zero. Let's find this exact point using each method.
+
+* Analytically: set first derivative equal to 0:
+
+$\frac{\partial y}{\partial x} = -2x + 2 = 0 \rightarrow 2x^{\ast} = 2 \rightarrow x^{\ast} = 1$
+
+* Find the peak of the utility function
+
+```{r}
+# Make a data frame that binds together the x and y statements
+utility <- cbind.data.frame(x.values,y.values)
+
+# The data then looks like this
+head(utility)
+
+# We can use bracket selection to see the value of X in the same row where Y (legislator utility) is maximized
+utility$x.values[utility$y.values==max(utility$y.values)]
+```
+
+* Find the x-value where the derivative is 0
+
+```{r}
+# Make a data frame that binds together the x values and the corresponding derivatives of the y values
+derivative.utility <- cbind.data.frame(x.values,derivative.y.values)
+
+# The data then looks like this
+head(derivative.utility)
+
+# Use the bracket selection to find the value of X in the same row where the derivative of Y is 0
+derivative.utility$x.values[derivative.utility$derivative.y.values==0]
+```
+
+
+We get the same answer from all three approaches. The legislator will be happiest when the policy has an ideology of "1", whatever that means.
+
+Here's what this looks like visually
+
+```{r}
+par(mfrow=c(1,2))
+plot(x=x.values,y.values, type='l', xlab="Policy Ideology", 
+     ylab="Legislator Utility From Policy", xlim=c(-4,4), ylim=c(-.5,10), 
+     main="Legislator's Utility Function")
+abline(v=1, lty=2)
+abline(h=8, lty=2)
+
+plot(x=x.values,y=derivative.y.values, type='l', 
+     main="Derivative of \n Legislator's Utility Function", 
+     xlab="Policy Ideology", ylab="Derivative",xlim=c(-4,4))
+abline(v=1, lty=2)
+abline(h=0, lty=2)
+dev.off()
+```
+
+
+### Optimization in R
+
+This was a relatively simple optimization problem, that is easily done by hand. However, you will soon encounter more complicated, multivariate functions that are hard to optimize manually. 
+
+To do optimization in R, you can use the **"optimize()"** or the **"optim()"** functions.
+
+The **"optimize()"** function is helpful for univariate optimization It takes three main arguments. First, "f = " specifies the function to be optimized. In our case, it's the "quadratic.function". Next, it takes an interval of x values over which to optimize the function. Be careful here---some functions may have multiple local minima and maxima, and the way you specify the "interval = c()" command may affect your results. Finally, you have to specify whether "optimize()" should minimize or maximize the function. By default, it finds the minimum. To find the maximum, specify "maximum=T".
+
+We can use "optimize()" to solve our optimization problem from above as follows. Say, we look at an interval between -5 and 5. Of course, we are interested in the policy that *maximizes* an actor's utility:
+
+```{r}
+optimize(f = quadratic.function, interval=c(-5,5), maximum=T)
+```
+
+"maximum" gives us the value of x at which the function is maximized. "objective" gives us the resulting value on y---in our case, the resulting utility from a policy at $x=1$.
+
+Alternatively, we can use **"optim()"**. However, it works best with more complicated functions that take multiple inputs. So we will deal with it later in math camp.
+
+
+
+### Exercises
+
+1. Create this function: $y = x^3 - 6x^2 + 4x + 12$
+
+```{r, include=F}
+fun <- function(x){
+  y = x^3 - 6*x^2 + 4*x + 12
+  return(y)
+}
+```
+
+2. Plot this function over a range of x-values from -2 to 6.
+
+```{r, include=F}
+x <- seq(-2,6,0.1)
+y <- fun(x)
+
+plot(x, y, type="l", main=expression(x^3 - 6*x^2 + 4*x + 12))
+```
+
+3. Using "optimize()", find the minimum of the function for the range (0, 5).
+
+```{r, include=F}
+optimize(f = fun, interval=c(0,5), maximum=F)
+```
+
+
+# 3. Using R to Integrate Functions
+
+### Distribution of Legislator Ideology
+
+Before, we considered the policy that made a single legislator happiest. Now let's focus on the entire legislature. Suppose we have been given the ideal points of the entire chamber. We want to use this information to make some descriptive statements about particular legislators. For example, what percentage of the chamber is more liberal or conservative than a given politician?
+
+In a simple case, we might use the integration techniques we learned to figure out this problem. How? Consider the following. 
+
+Suppose another quadratic function $y = -(3-x)^2 + 81$ describes the distribution of ideal points within the entire legislature.
+
+```{r}
+ideal.points <- seq(from=-5, to=12, by=.1)
+number.legislators <- -(3-ideal.points)^2 + 81
+```
+
+Here's what that looks like when plotted:
+```{r}
+plot(x=ideal.points, y=number.legislators, type='l', xlim=c(-5, 12), 
+     ylim=c(0, 100), ylab="Number of Legislators at Point", xlab="Ideology", 
+     main="Distribution of Legislator Ideology In Overall Chamber")
+```
+
+Let's keep the focus on an individual legislator with an ideal point of "1" on this policy dimension. Given that ideal point,  what % of the chamber is to the left of this politician?
+
+Mechanically, this means we want to find the area under the curve to the left of "1". 
+```{r}
+plot(x=ideal.points, y=number.legislators, type='l', xlim=c(-5, 12), 
+     ylim=c(0, 100), ylab="Number of Legislators at Point", xlab="Ideology", 
+     main="Distribution of Legislator Ideology In Overall Chamber")
+abline(v=1, lty=2, col="red")
+```
+
+More specifically, we want to find the area of this shape, which when divided by the overall area under the curve, will tell us the percent of the chamber that is more liberal than our representative.
+```{r}
+plot(x=ideal.points, y=number.legislators, type='l', 
+     xlim=c(-5, 12), ylim=c(0, 100), ylab="Number of Legislators at Point", 
+     xlab="Ideology", main="Distribution of Legislator Ideology")
+
+topline <- - (3 - seq(from=-5,to=1,by=.2) )^2 + 81
+bottomline <- rep(0, times=length(topline))
+interval <- seq(from=-5,to=1, length=length(topline))
+
+polygon(x=c(interval, rev(interval)), y=c(topline, bottomline), col=rgb(0,.4,.8,0.25), border=NA)
+```
+
+We could solve this problem using the techniques we learned this morning. Assuming the function is defined over (-5,12), we could find the antiderivative of -(3-x)^2 + 81, solve for the overall area under the overall curve from (-5,12) and the area to the left of our legsislator (-5, 1). Dividing the second number by the first would give us the percentage of the chamber to the left of the legislator at 1.
+
+But what if the the distribution of preferences in the legislature wasn't analytically tractable?
+
+For example, suppose, instead of following a quadratic function, the distribution of preferences follows a "messy distribution"---a mixture of two normal distributions. We'll talk more about probability distributions later in Math Camp, for now just think of the normal distribution as a function that takes inputs (values on the x axis, a particular point on the ideological spectrum) and produces outputs (values on the y axis, the # of legislators with a given ideology). Here's a function to produce values from such a messy distribution by feeding it points on the ideological spectrum.
+
+```{r}
+messy.distribution <- function(input.points){
+  return(dnorm(input.points, mean=-1.25, sd=1)*17 + dnorm(input.points, mean=1.1, sd=.6)*16)
+}
+```
+
+The corresponding graph of the distribution of preferences in this legislature is as follows. It's a mixture of two normal distributions defined over the interval (-5,5). 
+```{r}
+ideal.points <- seq(from=-5, to=5, by=.05)
+number.legislators <- messy.distribution(ideal.points)
+
+legislator.distribution <- cbind.data.frame(ideal.points, number.legislators)
+area.under.curve <- subset(legislator.distribution, legislator.distribution$ideal.points < 1)
+
+plot(x=ideal.points, y=number.legislators, type='l', 
+     main="What % of Chamber is to the left of a legislator at 1?", 
+     ylab="# of Legislators With That Ideal Point", xlab="Ideal Points")
+
+interval <- area.under.curve$ideal.points
+topline <- area.under.curve$number.legislators
+bottomline <- rep(0, times=length(interval))
+polygon(x=c(interval, rev(interval)), y=c(topline, bottomline), col=rgb(0,.4,.8,0.25), border=NA)
+```
+
+So now we just have to find the area shaded in blue... But how do we do that? This isn't something we know how to integrate using the techniques we discussed earlier, so the analytical approach is not going to work. Rather than banging our head against the wall trying to find an analytical solution, let's use computing power to get us out of this jam. 
+
+
+### Monte Carlo Integration
+
+We will use R to implement an alternative approach to evaluating the integral of a function called **Monte Carlo Integration**. Per Wikipedia this "is a technique for numerical intergration using random numbers." Basically, this means we define a function, evaluate it at many randomly chosen points over a given interval and sum the results. If finding and evaluating the anti-derivative of a function is the 'clever' way to integrate, this is a brute force way to do the same thing.
+
+Monte Carlo Integration comes in handy when it isn't clear how to obtain an analytic answer (or when we just don't feel like thinking too much). So back to our guiding question. Given this distribution of preferences, what % of the chamber is to the left of the politician at "1"?
+
+Before we start into sampling random numbers, make sure to **set a seed** in R. If you are doing simulations/drawing random numbers this ensures that someone else will be able to replicate your work. Once you set the same seed as them, you should get the same result that they do from the simulation. If you have different seeds when generating random numbers you could come to slightly different conclusions. 
+
+```{r}
+set.seed(123)
+```
+
+#### Total area under the curve
+
+Ok, now let's define the interval that we'll integrate over. First we'll find the total area under the curve by integrating this function from -5 to 5. 
+
+1. First, define a sequence of values between the minimum and maximum values over which we want to integrate this function.
+```{r}
+start <- -5
+end <- 5
+interval <- seq(from=start, to=end, by=.01)
+```
+
+2. Then we pick how many randomly chosen points we want to evaluate the function at, in this example we'll do 100.
+```{r}
+number.evaluation.points <- 100
+```
+
+3. Now randomly draw 100 points on this interval at which to evaluate the function.
+```{r}
+monte.carlo.1.points <- sample(interval, size=number.evaluation.points)
+```
+
+4. We then plug these points into our messy.distribution function.
+```{r}
+monte.carlo.evaluations <- messy.distribution(monte.carlo.1.points)
+```
+
+5. This is the form of the Monte Carlo estimate: we take the interval we're estimating over times the average value of the function over that interval.
+```{r}
+estimate.overall <- (end - start)*(sum(monte.carlo.evaluations)/length(monte.carlo.evaluations))
+estimate.overall
+```
+
+This is our estimate of the total area under the curve. 
+
+
+#### What percent of legislators is to the left of a specific point?
+
+Let's go back and do the same thing, this time looking for the area to the left of our politician at 1. 
+
+1. Define the range of values between the minimum and the point of interest.
+```{r}
+start.left <- -5
+end.left <- 1
+interval.left <- seq(from=start.left, to=end.left, by=.01)
+```
+
+2. Pick the number of randomly chosen points we want to evaluate the function at.
+```{r}
+number.evaluation.points <- 100
+```
+
+3. Pick 100 randomly chosen points on this interval at which to evaluate this function.
+```{r}
+monte.carlo.2.points <- sample(interval.left, size=number.evaluation.points)
+```
+
+4. Evaluate these points, once again using our messy distribution function.
+```{r}
+monte.carlo.evaluations.left <- messy.distribution(monte.carlo.2.points)
+estimate.left <- (end.left - start.left)*(sum(monte.carlo.evaluations.left)/length(monte.carlo.evaluations.left))
+estimate.left
+```
+
+5. So let's finally answer our question. What's our estimate of the percent of the chamber that is more liberal than a politician at 1?
+```{r}
+percent.to.left <- estimate.left/estimate.overall
+percent.to.left
+```
+
+Now remember, this is an estimate rather than an analytic solution and that doesn't come without some costs. If we sampled more, fewer or different points we would get a different answer. So this is unlike an analytic integral where the answer has no uncertainty associated with it. Also at times this simulation could be very computationally intensive (e.g., doing this in multiple dimensions) and may take a while to run.
+
+
+### Using for loops to Estimate Uncertainty
+
+OK, we've gone through a lot but there's one more task we might be interested in. How much uncertainty is there in this estimate? How different would it be with a smaller or greater number of sample points?
+
+```{r}
+plot(x=ideal.points, y=number.legislators, type='l', 
+     main="Sampled Points Used to Estimate Integral", ylab="# Legislators at point", xlab="Ideology")
+rug(monte.carlo.1.points)
+```
+
+As you can see from this rug plot, our estimate of the overall distribution comes from points scattered throughout the distribution, but you'll note some gaps where we don't have coverage and some areas that seem to be overrepresented in estimating the integral. This means that our estimate may change if we change the distribution of points used. 
+
+This time we're going to loop over a vector that contains different sample sizes for our Monte Carlo integral. So at first it will only use a sample of n=1 to estimate the integral, as you can guess this will not be a very good approximation of the area under the curve. As n gets larger however, we expect our estimates to vary less because each additional sample point has much less influence on the average. 
+
+1. First, we need to define the support of our function. We'll sample from many points along here to estimate the area under the curve like we did in the single case above.
+```{r}
+start <- -5
+end <- 5
+interval <- seq(from=start, to=end, length=10000)
+```
+
+2. Next, we create a vector containing numbers from 1 to 10000. We will use this to determine the sample size in each loop estimating our Monte Carlo integral
+```{r}
+size.of.mc.sample <- seq(from=1, to=10000, by=1)
+```
+
+3. Let's generate an empty vector that will receive our estimates of the integral from the loop. If you don't do this you will receive an error message because there will not be a defined object to receive things from the loop
+```{r}
+integral.estimates <- NA
+```
+
+4. The loop (line-by-line explanation follows): 
+```{r}
+for(q in 1:length(size.of.mc.sample)){
+  sample.points <- sample(interval, size=size.of.mc.sample[q])
+  distribution.evaluated.at.sample.points <- messy.distribution(sample.points)
+  integral.estimates[q] <- (end - start) *(
+    sum(distribution.evaluated.at.sample.points)/length(distribution.evaluated.at.sample.points) )
+}
+```
+
+* Start of the loop: tells it to perform one estimate for each sample size listed in the size.of.mc.sample vector.
+* Next line: draw a sample of points to evaluate from the interval based on the number spelled out in the size.of.mc.sample vector. So, for the first run through size will equal 1, for the last iteration size will equal 10000
+* Third line: calculate the value of the function at these points using our user defined function from before
+* Final step: calculate our estimate of the integral, just as we did above but now each entry in value will contain an estimate based on varying sample sizes.
+
+5. Let's plot the estimates against the sample size:
+```{r}
+plot(x=size.of.mc.sample, y=integral.estimates, type='l', 
+     xlab="Monte Carlo Sample Size", ylab="Estimate of Integral", 
+     main="Estimate of Integral by Sample Size", las=1)
+abline(h=33, col="red")
+```
+
+So what does this plot tell us? Estimates are certainly noisier when we choose a smaller sample size. As the sample size increases the estimates appear to converge around 33. 
+
+
+### Exercises
+
+#### Fixing for loop code
+
+These for loops do not work as they should. What went wrong?
+
+1. 
+```{r, error=T}
+counter.number <- c()
+
+for(z in 1:6){
+	counter.number[i] <- z
+}
+
+counter.number
+```
+
+```{r, include=F}
+## corrected loop
+counter.number <- c()
+
+for(z in 1:6){
+	counter.number[z] <- z
+}
+
+counter.number
+```
+
+2.
+```{r, error=T}
+for(j in 1:15){
+	sample <- runif(n=10, min=-.5, max=1.75)
+	average.value[j] <- mean(sample)
+}
+
+average.value
+```
+
+```{r, include=F}
+## corrected loop
+average.value <- c()
+
+for(j in 1:15){
+	sample <- runif(n=10, min=-.5, max=1.75)
+	average.value[j] <- mean(sample)
+}
+
+average.value
+```
+
+
+3. 
+```{r, error=T}
+loop.number <- seq(from=1,to=5, length=10)
+
+output <- NA
+
+for(k in 1:length(loop.number)){
+	output <- rpois(n=1, lambda=3)
+}
+
+output
+```
+
+```{r, include=F}
+## corrected loop
+loop.number <- seq(from=1,to=5, length=10)
+
+output <- NA
+
+for(k in 1:length(loop.number)){
+	output[k] <- rpois(n=1, lambda=3)
+}
+
+output
+```
+
+
+### More Monte Carlo: Estimating $\pi$
+For another example of Monte Carlo simulation, suppose we know that the area of a unit circle (radius one) is some number which we've agreed to call $\pi$, but we don't know anything about the numerical value of $\pi$. We observe that the area of the sector of the unit circle where both the $x$ coordinate and $y$ coordinate are positive is $\frac{\pi}{4}$. We decide to try the following recipe:
+
+1. Throw a bunch of darts at a unit square.
+2. Count the fraction of darts lying in the sector of the circle. 
+3. Multiply this fraction by 4 to form our estimate. 
+**Note**: For this to work, each throw has to have an equal chance of landing anywhere in the square (more on this later in the course.)
+
+Let's try the procedure above with 100 darts:
+```{r}
+set.seed(123) #fix random number seed for reproducability
+numDraws <- 100 #set number of random  draws
+x.coord <- runif(numDraws) # draw uniformly distributed numbers between 0 and 1
+set.seed(456)
+y.coord <- runif(numDraws)
+z <- (x.coord^2+y.coord^2<1) #logical vector for if an (x,y) pair in the [0,1]x[0,1] square  has radius <= 1
+pi.Approx <- 4*sum(z)/numDraws 
+pi.Approx
+```
+
+Now, let's write the procedure above as a function that can take the following variable inputs: number or draws, starting seed for x, starting seed for y: 
+
+
+```{r}
+approximate.pi.montecarlo <- function(number.pi.draws,x.seed=123,y.seed=456){
+  set.seed(x.seed)
+  x.coord<- runif(number.pi.draws)
+  set.seed(y.seed)
+  y.coord<-runif(number.pi.draws)
+  radius.lessthan.one <- ((x.coord^2+y.coord^2)<1)
+  pi.approx <- 4*sum(radius.lessthan.one)/number.pi.draws
+  return(pi.approx)
+}
+```
+
+
+Let's see how our accuracy improves going from 10 draws to 10,000,000 draws: 
+
+```{r}
+sequence.powers <- c(1:7)
+seq.montecarlo.inputs <- 10^sequence.powers
+seq.montecarlo.inputs
+vector.pi.montecarlo.approx <- c(1:7)
+for(i in 1:length(sequence.powers)) {
+  vector.pi.montecarlo.approx[i]<-approximate.pi.montecarlo(10^sequence.powers[i])
+}
+vector.pi.montecarlo.approx
+```
+
+
+
+
+
