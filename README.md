@@ -16,6 +16,11 @@ Labs are held as scheduled on the syllabus, the content for which is available u
 
 A discussion board is found on [Piazza](https://piazza.com/class/j71vsuyumgo1gf). You can post any course related questions here and other students are encouraged to provide their thoughts or solutions any queries. The TA's and the professor will also comment as needed.
 
+### Lectures
+
+The video recordings of the lectures held at the University of Chicago (Summer 2017) are [available online for download and review](https://uchicago.app.box.com/s/x1xk2zosjj0c3vldgb3jkt95qsw74dnj).
+
+
 ### Course Content
 
 The easiest way to download and update the course content is to use [Git](https://git-scm.com), a language used for version control relative to this site, GitHub. Git are a series of commands run in the terminal. 
