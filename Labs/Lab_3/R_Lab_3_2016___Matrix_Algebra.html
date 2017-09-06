@@ -219,7 +219,7 @@ div.tocify {
 <h3 class="subtitle"><em>University of Chicago Computational Math Camp, 2017</em></h3>
 <h4 class="author"><em>TAs: Joshua Mausolf and Ryan Hughes</em></h4>
 <h4 class="author"><em>(with material from previous TAs: Hans Lueders, Jonathan Mummolo, and Erik Peterson)</em></h4>
-<h4 class="date"><em>September 5, 2017</em></h4>
+<h4 class="date"><em>September 6, 2017</em></h4>
 
 </div>
 
@@ -712,7 +712,7 @@ for(i in 1:nrow(df)){
 time1 &lt;- proc.time()-mark
 time1</code></pre>
 <pre><code>##    user  system elapsed 
-##    15.2     1.5    17.2</code></pre>
+##    14.7     1.5    16.6</code></pre>
 <p>Now, using the vectorized comand</p>
 <pre class="r"><code>## set a marker
 mark &lt;- proc.time()
@@ -724,12 +724,12 @@ df$new &lt;- df$vec1 + df$vec2
 time2 &lt;- proc.time()-mark
 time2</code></pre>
 <pre><code>##    user  system elapsed 
-##   0.004   0.000   0.004</code></pre>
+##   0.004   0.000   0.003</code></pre>
 <p>That was much faster!</p>
 <pre class="r"><code>## Compare the loop time to the vectorized time
 time1/time2</code></pre>
 <pre><code>##    user  system elapsed 
-##    3804     Inf    4291</code></pre>
+##    3668     Inf    5539</code></pre>
 </div>
 <div id="the-apply-functions" class="section level3">
 <h3>The “apply” functions</h3>
