@@ -3,16 +3,16 @@ title: 'R Problem Set 1: Loops, Functions, and Matrix Algebra'
 author: "Your name goes here"
 date: 'Due date: September 12, 2017'
 output:
-  pdf_document:
-    toc: yes
   html_document:
     toc: yes
     toc_float: yes
+  pdf_document:
+    toc: yes
 ---
 
 #Instructions
 
-Please print and submit a hardcopy of your completed problem set (the knitted .pdf) to the next lab, 1:30 PM Tuesday, September 12, 2017. *Note*: please do *not* email files. It will be easier to grade your problem sets if given the hardcopy.
+Please print and submit a hardcopy of your completed problem set (the knitted .pdf) in class, 9:00AM Tuesday, September 12, 2017. Late submissions will not be accepted. *Note*: please do *not* email files. It will be easier to grade your problem sets if given the hardcopy.
 
 Please do the following problems. When you see a line of code like `set.seed(123)`, just leave it.  It is to make your assignments more easily comparable from student to student.
 
