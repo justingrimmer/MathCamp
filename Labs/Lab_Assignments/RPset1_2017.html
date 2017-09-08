@@ -223,7 +223,7 @@ div.tocify {
 
 <div id="instructions" class="section level1">
 <h1>Instructions</h1>
-<p>Please print and submit a hardcopy of your completed problem set (the knitted .pdf) to the next lab, 1:30 PM Tuesday, September 12, 2017. <em>Note</em>: please do <em>not</em> email files. It will be easier to grade your problem sets if given the hardcopy.</p>
+<p>Please print and submit a hardcopy of your completed problem set (the knitted .pdf) in class, 9:00AM Tuesday, September 12, 2017. Late submissions will not be accepted. <em>Note</em>: please do <em>not</em> email files. It will be easier to grade your problem sets if given the hardcopy.</p>
 <p>Please do the following problems. When you see a line of code like <code>set.seed(123)</code>, just leave it. It is to make your assignments more easily comparable from student to student.</p>
 <div id="how-to-do-this-problem-set" class="section level3">
 <h3>How to do this problem set</h3>
@@ -243,8 +243,7 @@ div.tocify {
 <p>The following code will create the initial data frame <code>dat</code> for this problem:</p>
 <pre class="r"><code># Create a vector x and assign to it values from -2 to 2 in increments of 0.1.
 x &lt;- seq(from=-2, to=2, by=0.1)</code></pre>
-<pre class="r"><code>#Create a data frame with the columns x, x.plus, and x.multiply. x is the same vector you created before. x.plus is x added to itself, and x.multiply is x multiplied by itself.
-
+<pre class="r"><code>## Create Data Frame
 dat &lt;- as.data.frame(matrix(nrow=length(x), ncol=3))
 dat[,1] &lt;- x
 dat[,2] &lt;- x + x
