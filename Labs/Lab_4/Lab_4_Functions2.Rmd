@@ -1,0 +1,534 @@
+---
+title: "[R Lab 4: Functions, Optimization, and Simulation Part 2](http://htmlpreview.github.io/?http://raw.githubusercontent.com/justingrimmer/MathCamp/master/Labs/Lab_2/Lab_4_Functions2.html)"
+subtitle: "University of Chicago Computational Math Camp, 2017"
+author: 
+- "TAs: Joshua Mausolf and Ryan Hughes"
+- "(with material from previous TAs: Hans Lueders, Jonathan Mummolo, and Erik Peterson)"
+date: "Monday, September 11, 2017"
+output: html_document
+theme: sandstone
+---
+
+
+# 1. Optimization in the Univariate Case
+
+In Session 2 we focused on a simple case of optimization with a single variable. We were able to find an analytic solution or plot the derivative of the function and find out where it was equal to zero in R. 
+
+This approach worked fine in that instance, but for more complicated functions---especially those with many variables---it becomes more difficult. R has a function "optim()" that can handle these more difficult cases. 
+
+### Recall the "optimize" function
+
+Let's start with our example from the previous section. If you remember, we were trying to figure out what policy a politician preferred given their utility function. Here's the utility function we used:
+
+```{r}
+politician.utility <- function(policy.content){
+		politician.support <- -(policy.content - 1)^2 + 8
+		return(politician.support)
+}
+```
+
+And here is how this utility function looked like:
+```{r}
+x.values <- seq(from=-2, to=4, by=.2)
+y.values <- politician.utility(seq(from=-2,to=4, by=.2))
+plot(x=x.values, y=y.values, type='l', xlab="Policy Ideology", 
+     ylab="Legislator Utility From Policy", xlim=c(-4,4), ylim=c(-.5,10), main="Legislator's Utility Function")
+```
+
+Where is the peak of this function? Let's use the **"optimize"** function to find out.
+
+A couple things to note. First, we pass our function, "politician.utility" to "optimize". When using optimizers you will need to write a function that returns an output you would like to maximize or minimize. Second, we need to provide an interval over which "optimize()" can search for a maximum value. Third, note that we need to specify that we want to find the maximum of this function. The default setting in both "optimize" and "optim" is to find the minimum of a function. 
+
+```{r}
+optimize(f=politician.utility, interval=c(-2,4), maximum=TRUE)
+```
+
+*Maximum* tells us the point on the y axis at which the function is maximized. *Objective* tells us the value of the function evaluated at this point
+
+So this works. It returned the answers we found last week in the second lab session.
+
+
+### Your turn: find the maximum of the following function using "optimize"
+
+Function: $y_i = \sin(x_i)^3 - \cos(x_i)^3$
+
+1) Plot the function over the interval (-10, 10).
+
+2) Find the maximum of the function for the interval (-4,1). Looking at your plot, is this a local or global minimum?
+
+3) What is the minimum of this function for the interval (-5, -0.5)?
+
+```{r, include=F}
+## Defining the Function
+practice.function <- function(x){
+	out <- sin(x)^3 - cos(x)^3
+	return(out)
+}
+
+## plot
+plot(seq(-10,10,0.1), practice.function(seq(-10,10,0.1)), type="l",
+     xlab="x", ylab="y")
+
+## maximum for (-4,1)
+optimize(practice.function, interval=c(-4,1), maximum=T)
+
+## minimum for (-5,-0.5)
+optimize(practice.function, interval=c(-5,-0.5), maximum=F)
+```
+
+Great, we've got optimize to work for one dimensional functions. But what if there are multiple variables in a function we want to optimize? For that we need the "optim" function. 
+
+
+# 2. Optimization in the Multivariate Case
+
+### Utility function with two inputs
+
+When politicians decide whether to support a bill there are often more than a single dimension at play. For example, an issue might touch on both economic and social issues. Suppose a politician has different utility functions over two aspects of a bill. What combination of economic and social policy content might they prefer from the bill?
+
+Here is a new function describing politican support for a policy proposal:
+
+```{r}
+politician.utility.2d <- function(economic.content, social.content){
+				politician.support <- (-(economic.content - 1)^2 + 8 ) + (-(social.content + 2)^2 + 8)
+				return(politician.support)
+}
+```
+
+
+### Plotting in 3-D
+
+Let's look at how the legislator's new utility function looks like. The following graph plots the policy's economic content on the x axis. The y axis represents the the social policy content of a bill. The z axis represents the utility a legislator gets from a bill with those two features. Let's say that both the economic and social aspects of a particular bill can vary between -8 and 8:
+
+```{r}
+economic.substance <- seq(from=-8,to=8, by=.2)
+social.substance <- seq(from=-8, to=8, by=.2)
+utility <- outer(economic.substance, social.substance, politician.utility.2d)
+```
+
+The outer function makes a grid of utility values based on all the potential combinations of economic.substance and social.substance on the interval defined above. This makes 3-D plotting easy.
+
+Here's a view **from above** using a "contour plot." Values in the circles closest to the center represent a higher utility for the politician (the following plot is still 2-D, of course):
+
+```{r}
+contour(x=economic.substance, y=social.substance, z=utility, 
+        xlab="Economic Policy Content", ylab="Social Policy Content", 
+        main="Utility Based on Policy Content on Two Dimensions", nlevels=15)
+```
+
+Let's produce some 3-D plots using the "persp()" function. We start with a view **from the side**. As we move to the back on both the social and economic dimensions, we move from negative to positive values. Note how the utility first increases in both, but beyond some "bliss" point decreases again:
+```{r}
+persp(x=economic.substance, y=social.substance, z=utility, 
+      theta=-50,phi=20, axes=TRUE, xlab="Economic Policy Content", 
+      ylab="Social Policy Content", zlab="Legislator Utility", 
+      main="Utility Based on Policy Content on Two Dimensions")
+```
+
+Roughly speaking, the "theta" argument in the "persp()" command turns the plot right (more negative values) or left (less negative values), while the "phi" argument makes us look at the plot more from above (more positive values) or below (less positive values).
+
+Let's look at the plot from one side:
+```{r}
+persp(x=economic.substance, y=social.substance, z=utility, 
+      theta=-5,phi=10, axes=TRUE, xlab="Economic Policy Content", 
+      ylab="Social Policy Content", zlab="Legislator Utility", 
+      main="Utility Based on Policy Content on Two Dimensions")
+```
+
+And further rotating it:
+```{r}
+persp(x=economic.substance, y=social.substance, z=utility, 
+      theta=20,phi=10, axes=TRUE, xlab="Economic Policy Content", 
+      ylab="Social Policy Content", zlab="Legislator Utility", 
+      main="Utility Based on Policy Content on Two Dimensions")
+```
+
+And looking at it from below:
+```{r}
+persp(x=economic.substance, y=social.substance, z=utility, 
+      theta=-50,phi=-40, axes=TRUE, xlab="Economic Policy Content", 
+      ylab="Social Policy Content", zlab="Legislator Utility", 
+      main="Utility Based on Policy Content on Two Dimensions")
+```
+
+
+
+### Back to our optimization problem
+
+How do we optimize the utility function in this case? We will use the "optim()" function, but first we need to make a few changes to the politician's utility function so that it meshes well with optim. 
+
+```{r}
+politician.utility.2d <- function(params){
+				economic.content <- params[1]
+				social.content <- params[2]
+				politician.support <- (-(economic.content - 1)^2 + 8 ) + (-(social.content + 2)^2 + 8)
+				return(politician.support)
+}
+```
+
+Note the change between the new and the old version of the function: the function receives only one argument---"params"---which will contain two elements. The function then assigns the first element of "params" to the first dimension of the legislator's utility function, and the second one to the social dimension. This is because "optim" will optimize only the first argument of our function---regardless of how many elements (i.e., variables) it contains.
+
+Now we can run "optim()". The function takes at least three arguments. The first argument is "par", which specifies the starting points at which optim will start to assess optima. The second argument is "fun"---the function we want to optimize. As the function "optimize()", "optim()" minimizes by default. In order to find the maximum of our function, we need to add the argument "control=list(fnscale=-1)". An alternative would be to have our "politician.utility.2d" function return the negative of politician support. Thish would accomplish the same thing without needing to change around the optim parameters.  
+
+Let's optimize our function now:
+```{r}
+optim(par=c(-1,0), fn=politician.utility.2d, control=list(fnscale=-1))
+```
+
+Optim has several outputs. The most important ones are the two elements contained in the "par" output. They show the optimized values for each parameter. Note that these are slightly off from the acutal analytic values which would be 1 and -2. "optim()" has stopping rules in place that tell it when to stop iterating to find a maximum value. This means we will be close to, but perhaps not exactly at, the maximized value of the function if we found it analytically
+
+
+# 3. Using real data
+
+Now let's use optim with some actual data to optimize a regression model. In your last homework, you used matrix algebra to compute the OLS estimates, but at its root all we are trying to do is minimize the sum of squared errors for a data set based on a set of coefficients. Using optim, we can perform this procedure without matrix algebra. 
+
+Let's use a data set based on a January 2013 CBS poll that asked Americans, "Which is more important to you---to protect American industries and jobs by limiting imports from other countries, or to allow free trade so you can buy good products at low prices no matter what country they come from?" 
+
+```{r, include=F}
+rm(list=ls())
+```
+
+```{r}
+load("trade.Rdata")
+ls()
+dim(trade)
+head(trade)
+```
+
+Respondents could either support limiting imports or allowing free trade. If the respondent selected "allow free trade" they received a "1" on the free.trade.support variable, if they selected "limit imports" they received a "0" on this variable. 
+
+Among other things, the survey also asked respondents their income and education level. Income is coded as a numeric variable that takes one of 5 values at the median of income bins on the survey. The third variable---education---is coded as "1" if the respondent had some education post high school and "0" if they had a high school diploma or less education. 
+
+There is a huge literature in International Political Economy that examines the underpinnings of public preferences for trade policy. Since this work talks about how education and income relate to trade preferences among the public, let's look at how these two variables predict preferences for free trade in our poll. 
+
+Here is a simple predictive model of trade preferences:
+
+$$\text{trade support}_{i} = \beta_0 + \beta_1*\text{income}_i + \epsilon_i$$
+
+$\beta_0$ (intercept---in our case, the intercept measures respondent $i$'s baseline support for free trade if all covariates are 0) and $\beta_1$ (which tells us the relationship between respondent $i$'s income and her likelihood to support free trade) are parameters that need to be estimated from the data.
+
+As an initial cut, let's assume our goal is to find the parameter values of $\beta_0$ and $\beta_1$ that produce the least total error in our predictive mode (i.e., the values that make this model do the best job possible predicting support for free trade).
+
+More specifically, we want to find these values by minimizing the sum of squared errors of a model's predictions:
+
+$$\sum\limits_{i=1}^n(y_i - (\beta_0 + \beta_1*\text{income}_i))^2$$
+
+You will see this in much more detail later, but for now let's use this as a case to put our new found skills with optim to use, now incorporating both parameters and data into optim. 
+
+The following "trade.preferences" function sets up the objective function mentioned above. "model.error" is the sum of squared errors for the model, in words it's a measure of how far off the model is in predicting the trade preferences of every survey respondent. 
+
+```{r}
+trade.preferences <- function(params, data){
+	#Pull Parameter Values from params vector
+	beta0 <- params[1]
+	beta1 <- params[2]
+	
+	#Return the sum of squred errors from those particular parameter values
+	model.error <- sum((data$free.trade.support - (beta0 + (beta1*data$income)))^2)
+	
+	#Return the resulting model error
+	return(model.error)
+}
+```
+
+We want to minimize model error, so this time when we run optim, we will use it to search for a **minimum**. 
+
+We now need to specify two parameter starting values with par as well as the data we will use.
+
+```{r}
+# run optim
+trade.preferences.predictive.model <- optim(par=c(0,0), data=trade, fn=trade.preferences)
+
+# Let's pull out our estimates for beta0 and beta1
+beta0 <- trade.preferences.predictive.model$par[1]
+beta1 <- trade.preferences.predictive.model$par[2]
+our.estimates <- unname(rbind.data.frame(beta0, beta1))
+our.estimates
+```
+
+No need to get too bogged down in interpreting the results of our predictive right now, but the sign of $\beta_1$, for example, suggests that those with higher incomes are more likely to support free trade than those with lower incomes. 
+
+Let's compare the estimates from our function to what we'd obtain using R's canned regression function, lm():
+```{r}
+lm.trade.support <- summary(lm(free.trade.support ~ income, data=trade))
+canned.estimates <- unname(cbind.data.frame(lm.trade.support$coefficients[1:2]))
+canned.estimates
+```
+
+Here's a table comparing our estimates to those form the lm function:
+```{r}
+comparison.frame <- cbind.data.frame(our.estimates, canned.estimates)
+row.names(comparison.frame) <- c("beta0", "beta1")
+comparison.frame$difference.between.estimates <- 
+  round(comparison.frame$our.estimates - comparison.frame$canned.estimates, digits=5)
+comparison.frame
+```
+
+Let's Plot These Differences As Well
+```{r}
+plot(y=c(1:2), x=comparison.frame[,3], xlim=c(-.001,.001), xaxt='n', 
+     yaxt='n', ylab='', xlab='', main="Difference between lm and optim Estimates")
+abline(v=0, lty=2)
+axis(side=1, at=c(-.001,0,.001))
+axis(side=2, at=c(1,2), labels=c(expression(beta[0]), expression(beta[1])), las=1)
+```
+
+Great! Looks like our answer is pretty close to what you would get using lm(). 
+
+### Exercise: Education *and* income and Free Trade Preferences
+
+We just showed how to use "optim()" to find a parameter estimate for free.trade.support regressed on income. Using what we just learned, program a function that will perform a regression of free.trade.support on income *and* education, the other variable included in the trade data frame. You will need to perform the following tasks: 
+
+A) Write a function that will take 1) a vector of three parameter values and 2) the trade data frame and then produce the sum of squared errors for the following regression model:
+
+$$\text{trade support}_{i} = \beta_0 + \beta_1*\text{income}_i + \beta_2*\text{education} + \epsilon_i$$
+
+```{r, include=F}
+trade.preferences2 <- function(params, data){
+	beta0 <- params[1]
+	beta1 <- params[2]
+	beta2 <- params[3]
+	model.error <- sum((data$free.trade.support - (beta0 + beta1*data$income + beta2 *data$education))^2)
+	return(model.error)
+}
+```
+
+B) Pass this function to optim. What parameter estimates do you get?
+```{r, include=F}
+optim.estimates <- optim(par=c(0,0,0), data=trade, fn=trade.preferences2)$par
+```
+
+C) Compare these estimates to what you would have obtained from using R's "lm()" function. 
+```{r, include=F}
+lm.estimates <- coef(lm(free.trade.support ~ income + education, data=trade))
+
+comparison <- cbind(optim.estimates, lm.estimates, round(optim.estimates - lm.estimates, digits=5))
+comparison
+```
+
+
+
+# 4. Newton-Raphson
+
+### Some function 
+
+Let's learn Newton's method using some arbitrary function. The only requirement we want to impose is that this function has to be twice differentiable (you will soon notice why). Say we want to optimize the following arbitrary function:
+
+$$y = x^3 + 2x^2 - 3x + 4$$.
+
+The first derivative of this function is $\frac{\partial y}{\partial x} =  3x^2 + 4x - 3$.
+
+The second derivative is $\frac{\partial^2 y}{\partial x^2} = 6x + 4$
+
+
+This function looks like this:
+```{r}
+## Creating some arbitrary data 
+x <- seq(from=-4, to=2.5, by=0.01)
+
+## corresponding y values
+y <- x^3 + 2*x^2 - 3*x + 4
+
+## plot
+plot(x, y, type="l", main=expression(x^3 + 2*x^2 - 3*x + 4))
+```
+
+We want to use Newton-Raphson to find the following two points (optima):
+
+```{r, echo=F}
+plot(x, y, type="l", main=expression(x^3 + 2*x^2 - 3*x + 4))
+points(x=0.5351838, y = 3.12058, col="red", pch=16)
+points(x=-1.868517, y=10.0646, col="blue", pch=16)
+abline(h=3.12058, col="red", lty=2)
+abline(h=10.0646, col="blue", lty=2)
+abline(v=0.5351838, col="red", lty=2)
+abline(v=-1.868517, col="blue", lty=2)
+```
+
+
+### Implementing Newton-Raphson
+
+Recall that given a starting value $x_0$, we determine the next guess of the optimum of our function $f(x)$ using the following equation:
+
+$$x_1 = x_0 - \frac{f'(x_0)}{f''(x_0)}$$
+
+Or, more generally, for the $(n+1)^{th}$ guess, use
+
+$$x_{n+1} = x_n - \frac{f'(x_n)}{f''(x_n)}$$
+
+Given our function, 
+
+$$x_{n+1} = x_n - \frac{3x_n^2 + 4x_n - 3}{6x_n + 4}$$
+
+We want to continue looking for new guesses till the difference between a guess and the previous one is sufficiently small. For example, say we want to stick to a guess $x_n$ if $\mid x_n - x_{n-1} \mid < 0.0001$.
+
+Let's produce a function to implement Newton-Raphson in the univariate case. The function gets one input---an initial guess $x_0$. Here is one way to code this function:
+
+```{r}
+## Let's code three functions R to implement this function and its first and second derivatives
+fun <- function(x){
+  return(x^3 + 2*x^2 - 3*x + 4)
+}
+
+fun.first.deriv <- function(x){
+  return(3*x^2 + 4*x - 3)
+}
+
+fun.sec.deriv <- function(x){
+  return(6*x + 4)
+}
+
+## Newton Raphson function
+newton <- function(guess) { 
+  new <- guess
+  good <- 0
+  count <- 0
+  while(good==0) {
+    count <- count + 1
+    old <- new
+    part1 <- fun.first.deriv(old)
+    part2 <- fun.sec.deriv(old)
+    new <- old - part1/part2
+    if(count > 2){
+      diff <- abs(old - new) 
+      if(max(diff) < 0.0001){
+        good <- 1 
+      }
+    }
+  }
+  return(new) 
+}
+```
+
+Let's find the local minimum and maximum of our function. Note that our initial guess will affect the optimum that the Newton-Raphson method finds. Let's start with a relatively high guess:
+```{r}
+newton1 <- newton(10)
+newton1
+```
+
+This gives us the first point. If we plug it into the second derivative, we see that this is a local minimum because the second derivative evaluated at this point is positive. Moreover, we find that the first derivative evaluated at this point is (very close to) zero:
+```{r}
+## second derivative test
+fun.sec.deriv(newton1)
+
+## first derivative test
+fun.first.deriv(newton1)
+round(fun.first.deriv(newton1), digits=5)
+
+## What's the corresponding y-value?
+fun(newton1)
+```
+
+
+Let's try to find the second optimum by plugging a negative value into our Newton-Raphson function:
+```{r}
+newton2 <- newton(-10)
+newton2
+```
+
+Again, we can plug in this point into both the first and second derivative to confirm that this is a local maximum:
+```{r}
+## second derivative test
+fun.sec.deriv(newton2)
+
+## first derivative test
+fun.first.deriv(newton2)
+round(fun.first.deriv(newton2),digits=5)
+
+## What's the corresponding y-value?
+fun(newton2)
+```
+
+
+### Your turn!
+
+Using Newton-Raphson, plot and find the optima of the following function:
+
+$$-\frac{1}{2}x^4 + 3x^3 + 8x^2 - 4x + 15$$
+
+```{r, include=F}
+## Plot
+x <- seq(from=-4,8,by=0.01)
+y <- -(1/2)*x^4 + 3*x^3 + 8*x^2 - 4*x + 15
+
+plot(x,y, type="l", main=expression(-x^4 + 3*x^3 + 8*x^2 - 4*x))
+points(x=-1.539656, y = 26.36377, col="red", pch=16)
+points(x=0.2233356, y=14.53786, col="blue", pch=16)
+points(x=5.81632, y=280.4421, col="darkgreen", pch=16)
+abline(h=26.36377, col="red", lty=2)
+abline(h=14.53786, col="blue", lty=2)
+abline(h=280.4421, col="darkgreen", lty=2)
+abline(v=-1.539656, col="red", lty=2)
+abline(v=0.2233356, col="blue", lty=2)
+abline(v=5.81632, col="darkgreen", lty=2)
+
+## Let's code three quick functions that implement the function and its first two derivatives
+fun <- function(x){
+  out <- -(1/2)*x^4 + 3*x^3 + 8*x^2 - 4*x + 15
+  return(out)
+}
+
+fun.first.deriv <- function(x){
+  out <- -2*x^3 + 9*x^2 + 16*x - 4
+  return(out)
+}
+
+fun.sec.deriv <- function(x){
+  out <- -6*x^2 + 18*x + 16
+  return(out)
+}
+  
+  
+## Implementing Newton-Raphson
+newton.new <- function(guess) { 
+  new <- guess
+  good <- 0
+  count <- 0
+  while(good==0) {
+    count <- count + 1
+    old <- new
+    part1 <- fun.first.deriv(old)
+    part2 <- fun.sec.deriv(old)
+    new <- old - part1/part2
+    if(count > 2){
+      diff <- abs(old - new) 
+      if(max(diff) < 0.0001){
+        good <- 1 
+      }
+    }
+  }
+  return(new) 
+}
+
+## answers
+# first optimum
+opt1 <- newton.new(-4)
+opt1
+
+fun(opt1)
+round(fun.first.deriv(opt1), digits=5)
+fun.sec.deriv(opt1)
+
+# second optimum
+opt2 <- newton.new(0)
+opt2
+
+fun(opt2)
+round(fun.first.deriv(opt2), digits=5)
+fun.sec.deriv(opt2)
+
+# third optimum
+opt3 <- newton.new(8)
+opt3
+
+fun(opt3)
+round(fun.first.deriv(opt3), digits=5)
+fun.sec.deriv(opt3)
+```
+
+
+
+# 5. Note on Problem Set 4
+
+In the next Problem Set, you will optimize different functions. Several of these are likelihood functions, which have been referenced at several points in the math camp slides. While this is a new setting for applying the tools of optimization you have just learned, don't worry too much about trying to figure out what a likelihood is for now. For our purposes just consider it another function you have been given to optimize. However, unlike just using some arbitrary function, knowing how to work with these likelihoods will prove useful in research/later methods courses. 
+
+
+
