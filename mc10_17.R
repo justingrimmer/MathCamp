@@ -13,7 +13,7 @@ dev.off()
 
 sum(dbinom(50:100, 100, 0.5))
 
-##let's use a simulation
+##let's use a simulation to demonstrate the principle
 
 
 m_at_least<- c()
